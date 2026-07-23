@@ -1,0 +1,25 @@
+# System / Build files
+node_modules/
+.env
+.env.local
+.env.*.local
+dist/
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS files
+.DS_Store
+Thumbs.db
