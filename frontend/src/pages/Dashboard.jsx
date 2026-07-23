@@ -20,14 +20,20 @@ export default function Dashboard() {
             applicationApi.getByCandidate(user.candidateId),
           ]);
           setData({ jobs: jobs.data, apps: apps.data });
-        } else {
+        } else if (isRecruiter()) {
           const [stats, jobs] = await Promise.all([
             statsApi.get(),
             jobApi.getByCompany(user.companyId),
           ]);
           setData({ stats: stats.data, jobs: jobs.data });
+        } else {
+          // Admin
+          const res = await statsApi.get();
+          setData({ stats: res.data });
         }
-      } catch { /* silent */ }
+      } catch (err) { 
+        console.error("Dashboard fetch error", err); 
+      }
       finally { setLoading(false); }
     };
     load();
@@ -47,8 +53,10 @@ export default function Dashboard() {
           <div className="loading-page"><div className="spinner"/></div>
         ) : isCandidate() ? (
           <CandidateDash data={data} />
-        ) : (
+        ) : isRecruiter() ? (
           <RecruiterDash data={data} userId={user?.id} />
+        ) : (
+          <AdminDash data={data} />
         )}
       </main>
     </div>
@@ -195,6 +203,31 @@ function EmptyState({ text, cta, to }) {
       <div className="empty-icon">📭</div>
       <p>{text}</p>
       <Link to={to} className="btn btn-primary btn-sm">{cta}</Link>
+    </div>
+  );
+}
+
+/* ─── Admin dashboard ─────────────────────────────── */
+function AdminDash({ data }) {
+  const { stats } = data || {};
+  return (
+    <div className="fade-in">
+      <div className="grid-4 mb-2">
+        <StatCard icon="👥" label="Candidats"      value={stats?.totalCandidates   || 0} color="purple" />
+        <StatCard icon="🏢" label="Entreprises"    value={stats?.totalCompanies    || 0} color="cyan"   />
+        <StatCard icon="💼" label="Offres Publiées"      value={stats?.totalJobOffers    || 0} color="yellow" />
+        <StatCard icon="📨" label="Candidatures"   value={stats?.totalApplications || 0} color="green"  />
+      </div>
+
+      <div className="dash-section">
+        <div className="dash-section-header">
+          <h3>Espace Administrateur</h3>
+        </div>
+        <div className="card" style={{textAlign:'center', padding: '3rem 1rem'}}>
+          <p style={{fontSize: '1.1rem', marginBottom: '1.5rem'}}>Bienvenue sur le tableau de bord administrateur de RecruitAI.<br/>Vous pouvez consulter toutes les métriques détaillées depuis la page Statistiques.</p>
+          <Link to="/stats" className="btn btn-primary">Consulter les statistiques globales <ChevronRight size={18} style={{verticalAlign:'middle'}}/></Link>
+        </div>
+      </div>
     </div>
   );
 }
