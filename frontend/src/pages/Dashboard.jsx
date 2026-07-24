@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { jobApi, applicationApi, statsApi } from '../services/api';
+import { jobApi, applicationApi, statsApi, authApi } from '../services/api';
 import Sidebar from '../components/Sidebar';
 import { Briefcase, Users, FileText, TrendingUp, Plus, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -210,6 +210,22 @@ function EmptyState({ text, cta, to }) {
 /* ─── Admin dashboard ─────────────────────────────── */
 function AdminDash({ data }) {
   const { stats } = data || {};
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [statusMsg, setStatusMsg] = useState('');
+
+  const handleCreateAdmin = async (e) => {
+    e.preventDefault();
+    try {
+      await authApi.createAdmin({ name, email, password });
+      setStatusMsg('✅ Administrateur créé avec succès !');
+      setName(''); setEmail(''); setPassword('');
+    } catch (err) {
+      setStatusMsg('❌ Erreur lors de la création (email déjà utilisé ?)');
+    }
+  };
+
   return (
     <div className="fade-in">
       <div className="grid-4 mb-2">
@@ -219,13 +235,41 @@ function AdminDash({ data }) {
         <StatCard icon="📨" label="Candidatures"   value={stats?.totalApplications || 0} color="green"  />
       </div>
 
-      <div className="dash-section">
-        <div className="dash-section-header">
-          <h3>Espace Administrateur</h3>
+      <div className="grid-2">
+        <div className="dash-section">
+          <div className="dash-section-header">
+            <h3>Espace Administrateur</h3>
+          </div>
+          <div className="card" style={{textAlign:'center', padding: '2rem 1rem'}}>
+            <p style={{fontSize: '1rem', marginBottom: '1.5rem'}}>Bienvenue sur le tableau de bord administrateur de RecruitAI.<br/>Consultez toutes les métriques détaillées depuis la page Statistiques.</p>
+            <Link to="/stats" className="btn btn-primary">Statistiques globales <ChevronRight size={18} style={{verticalAlign:'middle'}}/></Link>
+          </div>
         </div>
-        <div className="card" style={{textAlign:'center', padding: '3rem 1rem'}}>
-          <p style={{fontSize: '1.1rem', marginBottom: '1.5rem'}}>Bienvenue sur le tableau de bord administrateur de RecruitAI.<br/>Vous pouvez consulter toutes les métriques détaillées depuis la page Statistiques.</p>
-          <Link to="/stats" className="btn btn-primary">Consulter les statistiques globales <ChevronRight size={18} style={{verticalAlign:'middle'}}/></Link>
+
+        <div className="dash-section">
+          <div className="dash-section-header">
+            <h3>Ajouter un Administrateur</h3>
+          </div>
+          <div className="card">
+            <form onSubmit={handleCreateAdmin} style={{display:'flex', flexDirection:'column', gap:'1rem'}}>
+              {statusMsg && <div style={{padding:'0.5rem', background:'var(--bg-secondary)', borderRadius:'4px', fontSize:'0.9rem'}}>{statusMsg}</div>}
+              <div>
+                <label className="form-label">Nom complet</label>
+                <input type="text" className="form-input" required value={name} onChange={e => setName(e.target.value)} />
+              </div>
+              <div>
+                <label className="form-label">Adresse E-mail</label>
+                <input type="email" className="form-input" required value={email} onChange={e => setEmail(e.target.value)} />
+              </div>
+              <div>
+                <label className="form-label">Mot de passe</label>
+                <input type="password" className="form-input" required minLength="6" value={password} onChange={e => setPassword(e.target.value)} />
+              </div>
+              <button type="submit" className="btn btn-primary" style={{marginTop:'0.5rem'}}>
+                Créer le compte Admin
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

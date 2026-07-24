@@ -28,7 +28,7 @@ public class Company {
 
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @JsonIgnore
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"password", "authorities", "accountNonExpired", "accountNonLocked", "credentialsNonExpired", "enabled"})
     private User user;
 
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)

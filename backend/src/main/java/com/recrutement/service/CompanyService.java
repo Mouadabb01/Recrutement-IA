@@ -13,6 +13,10 @@ public class CompanyService {
     @Autowired
     private CompanyRepository companyRepository;
 
+    public java.util.List<Company> getAllCompanies() {
+        return companyRepository.findAll();
+    }
+
     public Optional<Company> getCompanyById(Long id) {
         return companyRepository.findById(id);
     }

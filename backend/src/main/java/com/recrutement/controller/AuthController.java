@@ -37,4 +37,17 @@ public class AuthController {
             return ResponseEntity.status(401).body(new MessageResponse("Error: Invalid email or password"));
         }
     }
+
+    @PostMapping("/create-admin")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createAdmin(@Valid @RequestBody RegisterRequest request) {
+        try {
+            // Force the role to ADMIN
+            request.setRole("ROLE_ADMIN");
+            authService.registerUser(request);
+            return ResponseEntity.ok(new MessageResponse("Admin created successfully!"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        }
+    }
 }

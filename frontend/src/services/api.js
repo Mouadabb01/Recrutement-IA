@@ -34,6 +34,7 @@ api.interceptors.response.use(
 export const authApi = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
+  createAdmin: (data) => api.post('/auth/create-admin', data),
 };
 
 // ─────────────────────────────────────────────────────────
@@ -62,9 +63,19 @@ export const candidateApi = {
 // COMPANIES
 // ─────────────────────────────────────────────────────────
 export const companyApi = {
+  getAll: () => api.get('/companies'),
   getById: (id) => api.get(`/companies/${id}`),
   getByUser: (userId) => api.get(`/companies/user/${userId}`),
   update: (id, data) => api.put(`/companies/${id}`, data),
+};
+
+// ─────────────────────────────────────────────────────────
+// USERS (Admin only)
+// ─────────────────────────────────────────────────────────
+export const userApi = {
+  get: (id) => api.get(`/users/${id}`),
+  updateAvatar: (id, avatarBase64) => api.put(`/users/${id}/avatar`, { avatarBase64 }),
+  delete: (id) => api.delete(`/users/${id}`),
 };
 
 // ─────────────────────────────────────────────────────────

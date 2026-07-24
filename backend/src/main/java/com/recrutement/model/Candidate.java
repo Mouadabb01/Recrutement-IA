@@ -30,7 +30,7 @@ public class Candidate {
 
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @JsonIgnore
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"password", "authorities", "accountNonExpired", "accountNonLocked", "credentialsNonExpired", "enabled"})
     private User user;
 
     @OneToMany(mappedBy = "candidate", cascade = CascadeType.ALL)

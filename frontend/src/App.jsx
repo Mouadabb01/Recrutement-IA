@@ -10,6 +10,7 @@ import JobDetails from './pages/JobDetails';
 import Profile from './pages/Profile';
 import Stats from './pages/Stats';
 import Candidates from './pages/Candidates';
+import AdminManagement from './pages/AdminManagement';
 
 function App() {
   return (
@@ -54,6 +55,12 @@ function App() {
           <Route path="/stats" element={
             <ProtectedRoute roles={['ROLE_RECRUITER', 'ROLE_ADMIN']}>
               <Stats />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin" element={
+            <ProtectedRoute roles={['ROLE_ADMIN']}>
+              <AdminManagement />
             </ProtectedRoute>
           } />
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { candidateApi, companyApi } from '../services/api';
+import { candidateApi, companyApi, userApi } from '../services/api';
 import Sidebar from '../components/Sidebar';
 import { Save, User, Building2 } from 'lucide-react';
 import './Profile.css';
@@ -11,6 +11,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [saving,  setSaving]  = useState(false);
   const [msg, setMsg] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -18,14 +19,27 @@ export default function Profile() {
         if (isCandidate() && user?.candidateId) {
           const res = await candidateApi.getById(user.candidateId);
           setForm(res.data);
+          if (res.data.user?.avatarBase64) setAvatarPreview(res.data.user.avatarBase64);
         } else if (user?.companyId) {
           const res = await companyApi.getById(user.companyId);
           setForm(res.data);
+          if (res.data.user?.avatarBase64) setAvatarPreview(res.data.user.avatarBase64);
         }
       } finally { setLoading(false); }
     };
     load();
   }, []);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -36,6 +50,12 @@ export default function Profile() {
       } else {
         await companyApi.update(user.companyId, form);
       }
+      
+      // Update avatar if changed
+      if (avatarPreview && avatarPreview !== form.user?.avatarBase64) {
+        await userApi.updateAvatar(user.id, avatarPreview);
+      }
+
       setMsg('✅ Profil mis à jour avec succès !');
     } catch { setMsg('❌ Erreur lors de la mise à jour.'); }
     finally { setSaving(false); }
@@ -57,22 +77,38 @@ export default function Profile() {
         <div className="profile-layout">
           {/* Avatar card */}
           <div className="profile-avatar-card card">
-            <div className="profile-avatar-big">{user?.name?.[0]?.toUpperCase()}</div>
+            <label className="profile-avatar-big" style={{ cursor: 'pointer', overflow: 'hidden', position: 'relative' }}>
+              {avatarPreview ? (
+                <img src={avatarPreview} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                user?.name?.[0]?.toUpperCase()
+              )}
+              <div className="avatar-overlay" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.6)', color: 'white', fontSize: '0.8rem', textAlign: 'center', padding: '0.2rem', opacity: 0, transition: 'opacity 0.2s' }}>Modifier</div>
+              <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+            </label>
             <div className="profile-name">{user?.name}</div>
             <div className="profile-email">{user?.email}</div>
             <span className="badge badge-purple" style={{marginTop:'.5rem'}}>
-              {user?.role === 'ROLE_CANDIDATE' ? '👨‍💼 Candidat' : '🏢 Recruteur'}
+              {user?.role === 'ROLE_CANDIDATE' ? '👨‍💼 Candidat' : user?.role === 'ROLE_RECRUITER' ? '🏢 Recruteur' : '🛡️ Administrateur'}
             </span>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSave} className="profile-form card">
-            {isCandidate() ? (
+            {user?.role === 'ROLE_ADMIN' ? (
+              <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Espace Administrateur</h3>
+                <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
+                  En tant qu'administrateur, vous n'avez pas de profil public ou d'entreprise. Vous pouvez toutefois modifier votre avatar ci-contre.
+                </p>
+              </div>
+            ) : isCandidate() ? (
               <CandidateForm form={form} setForm={setForm} />
             ) : (
               <CompanyForm form={form} setForm={setForm} />
             )}
-            <button type="submit" className="btn btn-primary" disabled={saving} style={{marginTop:'1.5rem'}}>
+            
+            <button type="submit" className="btn btn-primary" disabled={saving || user?.role === 'ROLE_ADMIN'} style={{marginTop:'1.5rem', display: user?.role === 'ROLE_ADMIN' ? 'none' : 'inline-flex'}}>
               <Save size={16}/> {saving ? 'Sauvegarde…' : 'Enregistrer'}
             </button>
           </form>

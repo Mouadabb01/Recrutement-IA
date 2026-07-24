@@ -30,8 +30,7 @@ public class DataSeeder implements CommandLineRunner {
     @Transactional
     public void run(String... args) throws Exception {
         // Si la base contient déjà les données de test, on ne fait rien
-        if (userRepository.existsByEmail("yassine@recrut.ma")) {
-            System.out.println("✅ Base de données déjà peuplée avec les données de test marocaines.");
+        if (userRepository.count() > 0) {
             return;
         }
 

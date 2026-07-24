@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/companies")
@@ -14,6 +16,12 @@ public class CompanyController {
 
     @Autowired
     private CompanyService companyService;
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Company>> getAllCompanies() {
+        return ResponseEntity.ok(companyService.getAllCompanies());
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Company> getCompanyById(@PathVariable Long id) {

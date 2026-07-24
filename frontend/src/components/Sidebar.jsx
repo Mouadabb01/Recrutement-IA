@@ -1,14 +1,29 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useEffect, useState } from 'react';
+import { userApi } from '../services/api';
 import {
   LayoutDashboard, Briefcase, Users, User, BarChart3,
-  LogOut, Sparkles
+  LogOut, Sparkles, Shield
 } from 'lucide-react';
 import './Sidebar.css';
 
 export default function Sidebar() {
   const { user, logout, isCandidate, isRecruiter, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [avatar, setAvatar] = useState(null);
+
+  useEffect(() => {
+    if (user?.id) {
+      userApi.get(user.id)
+        .then(res => {
+          if (res.data?.avatarBase64) {
+            setAvatar(res.data.avatarBase64);
+          }
+        })
+        .catch(err => console.error("Error fetching avatar", err));
+    }
+  }, [user?.id]);
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
@@ -22,6 +37,9 @@ export default function Sidebar() {
     ...(isAdmin() || isRecruiter() ? [
       { to: '/stats', icon: <BarChart3 size={18} />, label: 'Statistiques' },
     ] : []),
+    ...(isAdmin() ? [
+      { to: '/admin', icon: <Shield size={18} />, label: 'Gestion' },
+    ] : []),
   ];
 
   return (
@@ -34,7 +52,13 @@ export default function Sidebar() {
 
       {/* User info */}
       <div className="sidebar-user">
-        <div className="sidebar-avatar">{user?.name?.[0]?.toUpperCase()}</div>
+        <div className="sidebar-avatar" style={{ overflow: 'hidden', padding: avatar ? 0 : undefined }}>
+          {avatar ? (
+            <img src={avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            user?.name?.[0]?.toUpperCase()
+          )}
+        </div>
         <div>
           <div className="sidebar-user-name">{user?.name}</div>
           <div className="sidebar-user-role">

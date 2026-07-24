@@ -38,8 +38,13 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role;
 
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
     private LocalDateTime updatedAt;
+
+    @Column(columnDefinition = "TEXT")
+    private String avatarBase64;
 
     @PrePersist
     protected void onCreate() {
